@@ -1,0 +1,21 @@
+{
+    "KPlugin": {
+        "Name": "Dodge Active Windows",
+        "Description": "A KWin script to make the dodge windows feature only apply when the window is focused",
+        "Icon": "preferences-system-windows",
+
+        "Authors": [
+            {
+                "Email": "lunakenny345@gmail.com",
+                "Name": "Luna Kenny"
+            }
+        ],
+        "Id": "dodge-active-windows",
+        "Version": "1.0",
+        "License": "GPLv3",
+        "Website": "https://github.com/luna15161718/dodge-active-windows"
+    },
+    "X-Plasma-API": "javascript",
+    "X-Plasma-MainScript": "code/main.js",
+    "KPackageStructure": "KWin/Script"
+}
