@@ -1,14 +1,17 @@
 callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "panels().forEach(panel => panel.hiding = 'alwaysvisible')")
+//workspace.screens.forEach(screen => print(screen))
 var panelIds
 var panelHeights
 var panelLocations
+var panelScreens
 callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "const result = []; panels().forEach((panel) => result.push([panel.id])); print(result)", function(returnValue) {panelIds = returnValue})
 callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "const result = []; panels().forEach((panel) => result.push([panel.height])); print(result)", function(returnValue) {panelHeights = returnValue})
 callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "const result = []; panels().forEach((panel) => result.push([panel.location])); print(result)", function(returnValue) {panelLocations = returnValue})
 callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "const result = []; panels().forEach((panel) => result.push([panel.offset])); print(result)", function(returnValue) {panelOffsets = returnValue})
+callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "const result = []; panels().forEach((panel) => result.push([panel.screen])); print(result)", function(returnValue) {panelScreens = returnValue})
 
 var timer = new QTimer()
-var area
+var areas = []
 timer.interval = 500
 timer.singleShot = true;
 timer.timeout.connect(function() {getArea()})
@@ -24,14 +27,19 @@ function getArea() {
     //print(panelOffsets)
     //print(workspace.clientArea(KWin.FullScreenArea, workspace.activeScreen, workspace.currentDesktop))
     //print(workspace.clientArea(KWin.MaximizeArea, workspace.activeScreen, workspace.currentDesktop))
-    workspace.windowList().forEach(window => {
-        if (window.resourceClass == "plasmashell" && window.specialWindow) {
-            print(window.frameGeometry)
-        }
-    })
-    print(workspace.screens[0].geometry)
-    area = workspace.clientArea(KWin.FullScreenArea, workspace.activeScreen, workspace.currentDesktop)
-    callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "panels().forEach(panel => panel.hiding = 'windowsgobelow'")
+    //workspace.windowList().forEach(window => {
+        //if (window.resourceClass == "plasmashell" && window.specialWindow) {
+            //print(window.frameGeometry)
+        //}
+    //})
+    //print(workspace.screens[0].geometry)
+    workspace.screens.forEach(screen => areas.push(workspace.clientArea(KWin.FullScreenArea, screen, workspace.currentDesktop)))
+    //print(areas)
+    panelScreens = panelScreens.split(",")
+    //print(panelScreens)
+    //print(areas)
+    //area = workspace.clientArea(KWin.FullScreenArea, workspace.activeScreen, workspace.currentDesktop)
+    callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "panels().forEach(panel => panel.hiding = 'windowsgobelow')")
     //print(area)
     //print(workspace.activeWindow)
     workspace.windowActivated.connect(disconnectWindow)
@@ -39,7 +47,7 @@ function getArea() {
 }
 
 function checkWindow() {
-    if (area == null) {
+    if (areas == null) {
         return
     }
     window = workspace.activeWindow
@@ -52,24 +60,41 @@ function checkWindow() {
     //panelIds.forEach((panel => {if(window.frameGeometry.y < panel.y) {
         //print(panel)
     //}}))
+    //print(panelHeights[2])
+    //print(window.frameGeometry.y - 200)
     panelIds.forEach((panel, index) => {
+        topDiff = -(areas[0].y - areas[panelScreens[index]].y)
+        //print(topDiff)
+        //print(bottomDiff)
+
+        //print(panelLocations[index])
         if (panelLocations[index] == "top") {
+            //print(1)
+            print(topDiff)
+
             print(window.frameGeometry.y)
-            print(parseInt(panelHeights[index]) + 8)
-            if (window.frameGeometry.y < parseInt(panelHeights[index]) + 8) {
+            print(parseInt(panelHeights[index]) + 8 + topDiff)
+            if (window.frameGeometry.y < parseInt(panelHeights[index]) + 8 + topDiff && workspace.screens.indexOf(workspace.activeScreen) == panelScreens[index]) {
                 callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "panelById(" + panelIds[index] + ").hiding = 'autohide'")
+                //print(1)
             }
             else {
                 callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "panelById(" + panelIds[index] + ").hiding = 'windowsgobelow'")
+                //print(2)
             }
         }
         else {
-            print(window.frameGeometry.y + window.frameGeometry.height)
-            print(area.height + parseInt(panelHeights[index]) - 108)
-            if (window.frameGeometry.y + window.frameGeometry.height > area.height + parseInt(panelHeights[index]) - 108) {
+            bottomDiff = areas[0].height - areas[panelScreens[index]].height - topDiff
+            //print(window.frameGeometry.y + window.frameGeometry.height)
+            //print(areas[panelScreens[index]].height + parseInt(panelHeights[index]) + 108 + topDiff - bottomDiff)
+            //print(bottomDiff)
+
+            if (window.frameGeometry.y + window.frameGeometry.height > areas[panelScreens[index]].height + parseInt(panelHeights[index]) - 108 + topDiff - bottomDiff && workspace.screens.indexOf(workspace.activeScreen) == panelScreens[index]) {
+                //print(1)
                 callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "panelById(" + panelIds[index] + ").hiding = 'autohide'")
             }
             else {
+                //print(2)
                 callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "panelById(" + panelIds[index] + ").hiding = 'windowsgobelow'")
             }
         }
