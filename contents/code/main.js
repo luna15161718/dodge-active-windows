@@ -19,11 +19,12 @@ function getArea() {
     panelIds = panelIds.split(",")
     panelHeights = panelHeights.split(",")
     panelLocations = panelLocations.split(",")
-    workspace.screens.forEach(screen => areas.push(workspace.clientArea(KWin.FullScreenArea, screen, workspace.currentDesktop)))
     panelScreens = panelScreens.split(",")
+    workspace.screens.forEach(screen => areas.push(workspace.clientArea(KWin.FullScreenArea, screen, workspace.currentDesktop)))
     callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "panels().forEach(panel => panel.hiding = 'windowsgobelow')")
     workspace.windowActivated.connect(disconnectWindow)
     workspace.activeWindow.moveResizedChanged.connect(checkWindow)
+    workspace.activeWindow.maximizedChanged.connect(checkWindow)
 }
 
 function checkWindow() {
@@ -56,5 +57,6 @@ function checkWindow() {
 function disconnectWindow() {
     workspace.activeWindow.moveResizedChanged.disconnect(checkWindow)
     workspace.activeWindow.moveResizedChanged.connect(checkWindow)
+    workspace.activeWindow.maximizedChanged.connect(checkWindow)
     checkWindow()
 }
