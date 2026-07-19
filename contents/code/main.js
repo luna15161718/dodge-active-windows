@@ -20,7 +20,6 @@ function getArea() {
     panelHeights = panelHeights.split(",")
     panelLocations = panelLocations.split(",")
     workspace.screens.forEach(screen => areas.push(workspace.clientArea(KWin.FullScreenArea, screen, workspace.currentDesktop)))
-    print(areas)
     panelScreens = panelScreens.split(",")
     callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "panels().forEach(panel => panel.hiding = 'windowsgobelow')")
     workspace.windowActivated.connect(disconnectWindow)
