@@ -1,19 +1,34 @@
-callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "panels().forEach(panel => panel.hiding = 'alwaysvisible')")
 var panelIds
 var panelHeights
 var panelLocations
 var panelScreens
-callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "const result = []; panels().forEach((panel) => result.push([panel.id])); print(result)", function(returnValue) {panelIds = returnValue})
-callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "const result = []; panels().forEach((panel) => result.push([panel.height])); print(result)", function(returnValue) {panelHeights = returnValue})
-callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "const result = []; panels().forEach((panel) => result.push([panel.location])); print(result)", function(returnValue) {panelLocations = returnValue})
-callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "const result = []; panels().forEach((panel) => result.push([panel.screen])); print(result)", function(returnValue) {panelScreens = returnValue})
-
-var timer = new QTimer()
 var areas = []
-timer.interval = 50
-timer.singleShot = true;
-timer.timeout.connect(function() {getArea()})
+var timer = new QTimer()
+manageTimer()
+
+function DBusCalls() {
+    callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "const result = []; panels().forEach((panel) => result.push([panel.id])); print(result)", function(returnValue) {panelIds = returnValue})
+    callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "const result = []; panels().forEach((panel) => result.push([panel.height])); print(result)", function(returnValue) {panelHeights = returnValue})
+    callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "const result = []; panels().forEach((panel) => result.push([panel.location])); print(result)", function(returnValue) {panelLocations = returnValue})
+    callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "const result = []; panels().forEach((panel) => result.push([panel.screen])); print(result)", function(returnValue) {panelScreens = returnValue})
+    timer.start()
+}
+
+function manageTimer() {
+    timer.interval = 5000
+    timer.singleShot = true;
+    timer.timeout.connect(function() {if (panelIds != null && panelHeights != null && panelLocations != null && panelScreens != null) {
+    setVisible()} else {
+        DBusCalls()
+    }})
 timer.start()
+}
+
+function setVisible() {
+    callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "panels().forEach(panel => panel.hiding = 'alwaysvisible')")
+    timer.timeout.connect(getArea())
+    timer.start()
+}
 
 function getArea() {
     panelIds = panelIds.split(",")
@@ -57,6 +72,7 @@ function checkWindow() {
 function disconnectWindow() {
     workspace.activeWindow.moveResizedChanged.disconnect(checkWindow)
     workspace.activeWindow.moveResizedChanged.connect(checkWindow)
+    workspace.activeWindow.maximizedChanged.disconnect(checkWindow)
     workspace.activeWindow.maximizedChanged.connect(checkWindow)
     checkWindow()
 }
