@@ -50,7 +50,7 @@ function checkWindow() {
     panelIds.forEach((panel, index) => {
         topDiff = -(areas[0].y - areas[panelScreens[index]].y)
         if (panelLocations[index] == "top") {
-            if (window.frameGeometry.y < parseInt(panelHeights[index]) + 8 + topDiff && workspace.screens.indexOf(workspace.activeScreen) == panelScreens[index]) {
+            if (window.frameGeometry.y < parseInt(panelHeights[index]) + 8 + topDiff && workspace.screens.indexOf(workspace.activeScreen) == panelScreens[index] && !window.desktopWindow) {
                 callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "panelById(" + panelIds[index] + ").hiding = 'autohide'")
             }
             else {
@@ -59,7 +59,7 @@ function checkWindow() {
         }
         else {
             bottomDiff = areas[0].height - areas[panelScreens[index]].height - topDiff
-            if (window.frameGeometry.y + window.frameGeometry.height > areas[panelScreens[index]].height + parseInt(panelHeights[index]) - 108 + topDiff - bottomDiff && workspace.screens.indexOf(workspace.activeScreen) == panelScreens[index]) {
+            if (window.frameGeometry.y + window.frameGeometry.height > areas[panelScreens[index]].height + parseInt(panelHeights[index]) - 108 + topDiff - bottomDiff && workspace.screens.indexOf(workspace.activeScreen) == panelScreens[index] && !window.desktopWindow) {
                 callDBus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", "evaluateScript", "panelById(" + panelIds[index] + ").hiding = 'autohide'")
             }
             else {
